@@ -1,0 +1,351 @@
+body{
+	height: 100%;
+	margin: 0px;
+	padding: 0px;
+	font-family: Arial,sans-serif;
+	font-size: 13px;
+}
+
+ul {
+	list-style-type: none;
+}
+
+td, th {
+	vertical-align: top;
+	max-width: 250;
+	font-size: 11px;
+}
+
+#id_priceSum, #id_vatSum, #id_amount {
+	width: 80px;
+	height: 22px;
+}
+
+#loginForm {
+	background-color: #bfbfbf;
+	color: #000000;
+	position: absolute;
+	left: 40%;
+	top: 45%;
+}
+
+#okbutton {
+	margin-left: 188px;
+}
+
+#toolbar {
+	height: 30px;
+	padding: 1px;
+}
+
+/*header*/
+
+#content, #header, #toolbar {
+	/*background-color: #ffffff;*/
+}
+#header {
+	background: url('/content/img/header_back.png') repeat-x;
+}
+
+#menu {
+	width: 100%;
+	height: 28px;
+	margin-bottom: 10px;
+}
+
+.menu a {
+	margin-right: 5px;
+}
+
+.header-menu {
+	float: left; 
+	color: #000000; 
+	margin-top:4px; 
+	margin-left:5px;
+}
+
+#userInfo {
+	text-align: right;
+	padding: 5px;
+	color: #000000;
+}
+
+.userInfo-border{
+	height: 1px;
+	width: 100%;
+	margin-top: 3;
+	background: url(/content/img/up_border.png) repeat-x;
+}
+
+.header-mainInfo{
+	margin: 0 2 0 2
+}
+
+.header-mainInfo table{
+	width: 100%;
+	text-align: center;
+}
+
+.header-mainInfo tr{
+	height: 50px;
+	color: black;
+}separator
+
+.header-mainInfo td{
+	vertical-align:middle;
+	padding-right: 8px; 
+}
+
+.header-menu-searchApply, .header-menu-searchClear{
+	float: right;
+	height: 20px;
+	margin: 0 3;
+	border: 1px solid #A6C9E2;
+}
+
+.header-menu-searchClear{
+	background-image: url('/content/img/close.png');
+}
+
+.header-mainInfo-searchApply, .header-mainInfo-searchClear{
+}
+
+.header-mainInfo-search {
+	padding-left: 10px;	
+	vertical-align: middle;
+}
+
+.header-mainInfo-search div{
+	position: relative;
+	text-align: left;
+}
+
+.header-mainInfo-search button {
+	margin-right: 5px;
+}
+
+.header-mainInfo-search input {
+	width: 400px !important;
+	margin-right: 5px;
+}
+
+.header-mainInfo-helper {
+	position: absolute;
+	left: 70px;
+	top: 7px;
+	color: grey;
+	display: none;
+}
+.header-mainInfo-logo {
+	width:250px;
+	font-size:13px;
+}
+
+.header-border img {
+	width: 100%;
+	height: 2px;
+}
+
+/*and header*/
+/*body*/
+.body{
+	padding: 0 5 0 8;
+	background: url('/content/img/body_back.png') repeat-x;
+}
+
+.body table {
+	vertical-align:top;
+	width: 100%;
+}
+
+.navigation{
+	width: 237px;
+	height: 570px;
+	border: none !important;
+	padding-right: 13px;
+	padding-top: 13px;
+}
+
+.maintable-separator {
+	width: 2px;
+}
+
+.maintable-separator img {
+	height:100%; 
+	width:2px;
+}
+
+.content {
+	padding-left: 13px;
+	padding-top: 13px;
+}
+
+.content-info{
+	font-size: 14px;
+	height: 27px;
+	padding: 0 5;
+}
+
+.content-info label{
+	float: right;
+}
+
+.footerSum{
+	color: black;
+	margin-right: 10px;
+	font-size: 12px;
+}
+
+.footerSum div div{
+	margin: 10 0 10 0;
+}
+
+.footerSumCaption{
+	width: 100px;
+	float: right;
+	text-align: left;
+	padding-left: 50px;
+}
+
+.footerSumNumb{
+	float: right;
+	width: 85px;
+	text-align: right;
+}
+
+.footerSale{
+	width: 50px;
+}
+
+.rubricator{
+	font-size: 12px;
+}
+
+.rubricator div{
+	margin-bottom: 12px;
+	margin-top: 2px;
+}
+
+.rubricatorHeader{
+	font-weight: bold;
+}
+
+.orderListHeader{
+	padding-right: 2px;
+	padding-bottom: 4px;
+	/*width: 235px;*/
+}
+
+.orderListHeader input[id=id_WithFinished] {
+	width: 20px;
+}
+
+.orderListHeader li {
+	clear:both; 
+	text-align:right; 
+	line-height:25px;
+	list-style-type: none;
+}
+
+.orderListHeader ul {
+	margin: 0;
+}
+
+.orderListHeader label {
+	float: left;
+	padding-left: 3px;
+}
+
+.orderListHeader input, .orderListHeader select, .orderListHeader button {
+	height: 20px;
+	padding: 0;
+	line-height: 1;
+	width: 53.5%;
+}
+
+.orderListHeader span {
+	padding: 0 !important;
+	line-height: 1 !important;
+}
+
+.orderListHeader_find {
+	text-align: right;
+}
+
+.orderListHeader_find input {
+	height: 25px;
+}
+
+.headerOrderUl{
+	padding-left:0%;
+}
+
+.invisible {
+	display: none;
+}
+
+
+
+.readonly {
+	background: none repeat scroll 0 0 #e5e5e5 !important;
+}
+
+.readonlyBtn {
+	background: none repeat scroll 0 0 #e5e5e5 !important;
+	color: gray !important;
+	border:  #e5e5e5;
+}
+
+.validation_control {
+	background-color: #FFFFD5;
+	border: 2px solid red;
+	margin: 0;
+	font-family: Arial,sans-serif;
+	font-size: 11px;
+}
+
+.validation_message {
+	color: red;
+}
+
+#id_Comments, #id_CustomerID {
+	width: 100%;
+}
+
+#id_Comments {
+	height: 299px;
+}
+
+#id_DocCode, #id_DocDate {
+	width: 62%;
+}
+
+/*selectable*/
+.ui-autocomplete-input.ui-widget.ui-widget-content.ui-corner-left.ui-corner-right{width: 100%;}
+.ui-autocomplete-input { margin: 0; padding: 0.48em 0 0.47em 0.45em; width: 85% }
+
+/*	#feedback { font-size: 1.4em; }*/
+.selectable .ui-selected, .selectable .ui-selecting  { 
+	background: #96C2E6;
+	color: #003071; 
+}
+
+.selectable {
+	 cursor: Pointer;
+	 list-style-type: none; 
+	 margin: 0; 
+	 padding: 0; 
+	 width: 100%;
+}
+
+.selectable li { 
+	margin: 3px; 
+    font-size: 11px; 
+	height: 11px; 
+	overflow: hidden; 
+	padding: 0.4em;
+}
+
+.rightMenu {
+	float: right;
+}

@@ -1,0 +1,353 @@
+<link rel="stylesheet" type="text/css" media="screen" href="/content/css/ui.jqgrid.css" />
+<link rel="stylesheet" type="text/css" media="screen" href="/content/css/ui.jqgrid.override.css" />
+
+<script src="/content/js/i18n/grid.locale-ru.js" type="text/javascript"></script>
+<script src="/content/js/UI/jquery.jqGrid.min.js" type="text/javascript"></script>
+<script src="/content/js/json.js" type="text/javascript"></script>
+
+<table id="grid" class="ui-widget-content"></table>
+<div id="pager"></div> 
+
+<script type='text/javascript'>
+//===================================================================================================
+//resize grid with browser window
+function beforeFillGrid(res){}
+
+function afterSaveCell(rowid, cellname, value, iRow, iCol){}
+
+function updateHeader(){}
+
+function getData(page){}
+
+function recalcRow(id){}
+
+function afterFillGrid(){}
+function ondblClickRow(){}
+
+jQuery.jgrid.fluid =
+{
+  fluidGrid: function(options)
+  {
+    var grid = $(this);
+    var settings = $.extend({
+	    example: grid.closest('.ui-jqgrid').parent(),
+	    offset: 0
+	 }, options || {});
+
+    var width = $(settings.example).innerWidth() + settings.offset - 13;
+    grid.setGridWidth(width);
+  }
+}
+
+$.fn.extend({ fluidGrid : jQuery.jgrid.fluid.fluidGrid });
+function resize_the_grid(){
+    $('#grid').fluidGrid({base:'#content', offset:-5});
+}
+
+//===================================================================================================
+//override paging(navigator)
+function navigate(el){
+	var page = navigate.page;
+	switch (el.id)
+	{
+		case 'prev': 
+			navigate.page = Math.max(navigate.page - 1, 1);
+			break;
+		case 'next':
+			navigate.page = Math.min(navigate.page + 1, navigate.total);
+			break;
+		case 'last':
+			navigate.page = navigate.total;
+			break;
+		case 'first':
+			navigate.page = 1;
+		default: break;
+	}
+	
+	if (page != navigate.page) {
+		getData(navigate.page);
+	}
+} 
+navigate.page = {{page|default:1}};
+navigate.total = {{total|default:1}};
+
+//===================================================================================================
+//reloads grid
+function reloadGrid(URL, DATA, METHOD) {
+    $.ajax({
+        url: URL,
+        data: DATA,
+        dataType: "json",
+        mtype: METHOD,
+        complete: function(jsondata, stat) { 
+            if (stat == "success") {
+				res = json_parse(jsondata.responseText);
+				fillGrid(res);
+            }
+        },
+        error : function () {console.log("unfriendly ajax error");}
+    });
+}
+
+function fillGrid(res){
+	beforeFillGrid(res);
+	navigate.total = res['total'] || navigate.total;
+	
+	if(res['setPage']) {
+		navigate.page = parseInt(res['setPage']);
+	} 
+	
+	$('#grid')[0].p.data = res['data'];
+	
+	$('#grid').toggleClass('invisible');
+	
+	$('#grid').trigger('reloadGrid');
+	afterFillGrid();
+	
+	$('#grid').toggleClass('invisible');
+	$('#grid')[0].updatepager();	
+}
+
+//get Changes
+function getChanges(){
+	return $.toJSON(getChanges.items);
+}
+getChanges.items = {}
+
+//On Dom Ready Event
+$(function() {
+	//create grid
+	var mygrid = jQuery("#grid").jqGrid({
+		{% if data %}
+			{% autoescape off %}
+				data: {{ data }},
+			{% endautoescape %}
+		{% endif %}
+		
+		datatype: 'local',
+		cellEdit: true,
+		autowidth: true, 
+		height: "100%",
+		rowNum: 20,
+		colNames: [
+			{% for col in columns %}
+				'{{ col.local }}',
+			{% endfor %}
+		],
+		colModel:[
+			{% for col in columns %}
+				{
+					name:'{{col.name}}', 
+					{% if col.hidden %} hidden: true, {% endif %}			
+					{% if col.type == 'currency' %} width: 30, align: "right", formatter:currencyFmatter, {% endif %}
+					{% if col.type == 'int' %} width: 30, align: "right",{% endif %}
+					{% if col.type == None %} width: 128, {% endif %}
+					{% if col.width %} minwidth: {{col.width}}, width: {{col.width}}, {% endif %}
+					{% if col.formatter %} formatter: {{col.formatter}}, {% endif %}
+					{% if col.unformat %} unformat: {{col.unformat}}, {% endif %}
+					{% if col.type == 'int' %} editrules: {integer: true, minValue: 0}, {% endif %}
+					{% if col.editable and not readonly %} editable: true, {% endif %}
+					{% if col.type == 'bool' %}
+					 	formatter: "checkbox",
+						align: "center",
+					{% endif %}
+					sortable: false,
+					resizable: false,
+					index:'{{col.name}}'
+				},
+			{% endfor %}
+		],
+		afterSaveCell: afterSaveCell, 
+		afterEditCell: function(rowid, cellname, value, iRow, iCol){
+			if ($('#grid')[0].p.data[rowid-1]["IsAvailable"] == '' || $('#grid')[0].p.data[rowid-1]["Available"] == 0){
+				$("#grid").jqGrid("restoreCell", rowid, iCol); 
+			}
+
+			refreshSelection(rowid);
+			isJustAfterEditCell = true;
+			$('input', '.edit-cell').select();
+		},
+		ondblClickRow: ondblClickRow,
+		onCellSelect:function(rowid,iCol,cellcontent,e){
+			if ($('#grid')[0].p.data[rowid-1]["IsAvailable"] == '' || $('#grid')[0].p.data[rowid-1]["Available"] == 0){
+				$("#grid").jqGrid("restoreCell", rowid, iCol); 
+			}
+			
+			if(!isJustAfterEditCell) {
+				var colName = $('#grid').getGridParam('colModel')[iCol]['name'];
+				$('#grid').setGridParam({'cellEdit': $('#grid').getColProp(colName)['editable'] || false});
+				$('#grid .ui-state-highlight').removeClass('ui-state-highlight');
+				
+				//fix for IE
+				if (!e) var e = window.event;
+				$(e.target).addClass('ui-state-highlight');
+			}
+			else{
+				isJustAfterEditCell = false;
+			}
+			refreshMenu();
+		},
+		onSelectCell: function(rowid, celname, iRow, iCol){
+			$('tr[class*="ui-state-highlight"]').removeClass('ui-state-highlight');
+		},
+		cellsubmit: 'clientArray',
+		pager: '#pager'
+	});
+	
+	var isJustAfterEditCell = false;
+
+	function currencyFmatter (cellvalue, options, rowObject){
+	   return cellvalue.toFixed(2)
+	}
+	
+	function stringToBoolean (string){
+        switch(string.toLowerCase()){
+                case "true": case "yes": case "1": return true;
+                case "false": case "no": case "0": case "undefined": case null: return false;
+                default: return Boolean(string);
+        }
+	}
+
+	$('input[type="checkbox"]', '#grid').attr('disabled','').change(function(){
+		$(this).attr('checked', stringToBoolean(String($(this).val())) ? 'checked' : '')
+	})
+
+	//adding navigation toolbar to grid
+	$("#grid").jqGrid(
+		'navGrid',
+		'#pager', 
+		{'add':false, 'del':false, 'edit':false, 'search':false, 'refresh':false} 
+	);
+	
+	//===================================================================================================
+//	SaveGridLayout.isbind = false;
+//	function SaveGridLayout(){
+//		SaveGridLayout.isbind = true;
+//		var gridCols = $('#grid').getGridParam('colModel')
+//		var strData = "[";
+//	
+//		for(var i in gridCols){
+//			strData = strData + "{";
+//			for(var param in gridCols[i]){
+//				if (["name", "hidden", "width"].indexOf(param)>-1){
+//					strData = strData + '"' + param + '"' + ":" + '"' + gridCols[i][param] + '"' + ",";
+//				}
+//			}
+//			
+//			strData = strData[strData.length-1] == ","? strData.substring(0, strData.length -1) + "}," : strData + "},";
+//		}
+//	
+//		$.post('/saveGridLayout/', {
+//			'layoutgridcolumns':	strData[strData.length-1] == "," ? strData.substring(0, strData.length -1) + "]" : strData + "]"
+//		});
+//	}
+	
+	//column chooser
+	$("#grid").jqGrid('navButtonAdd', "#pager",{
+		title:"Выбор колонок", 
+		buttonicon :'ui-icon-pin-s',
+		caption:'', 
+		onClickButton:function(){ 
+			$("#grid").jqGrid('setColumns');			
+			$('#colmodgrid').css('width', '300');
+		}
+	});
+	
+	//===================================================================================================
+	//override paging
+	$('#pager').find('#prev, #next, #last, #first').unbind('click').click(function(){
+		navigate(this);
+	});
+	$('#grid')[0].updatepager = function() {
+		$('input', '#pager').val(navigate.page);
+		$('#sp_1').html(navigate.total);
+		$('#pager').find('#prev, #next, #last, #first').removeClass('ui-state-disabled ui-state-hover');
+		if (navigate.page == 1){
+			$('#pager').find('#prev, #first').addClass('ui-state-disabled');
+		}
+		if (navigate.page == navigate.total){
+			$('#pager').find('#next, #last').addClass('ui-state-disabled');
+		}
+	}
+	
+	//===================================================================================================
+	//start events
+	$('input', '#pager').css('height', 20);
+	$('.ui-jqgrid-bdiv').css('min-height', 442);
+	$('#grid')[0].updatepager();
+
+	$('#grid').GridNav();
+	$('#grid_kn').bind('keyup', function(e){
+		if ([37, 38, 39, 40].indexOf(e.keyCode) != -1){
+			var iRow = $('#grid').getGridParam('iRow');
+			var iCol = $('#grid').getGridParam('iCol');
+			if (iRow && iCol){
+				$('#grid').jqGrid("editCell", iRow, iCol, true);
+			}
+		}
+	});
+	
+	$('.ui-pg-input').unbind('keyup keydown keypress').bind('keydown',function(event){
+		var val = parseInt(this.value);
+		navigate.page = val > 0 ? Math.min(navigate.total, val) : 1;
+		if(event.keyCode==13){
+			getData(navigate.page);
+		}
+	});
+	updateHeader();
+	//resize_the_grid();
+	$('#grid').bind('reloadGrid', bindKeyUp);
+	//$("td[title='{{order}}']").parent().addClass('ui-state-highlight');
+});
+
+//===================================================================================================
+//when cell edited
+function bindKeyUp()
+{
+	$('td', '#grid').bind('keyup', function(e){
+		var iRow = $('#grid').getGridParam('iRow');
+		var iCol = $('#grid').getGridParam('iCol');
+		
+		if ([38, 40].indexOf(e.keyCode) != -1){
+			$('#grid').jqGrid("saveCell", iRow, iCol);
+		}
+		switch (e.keyCode) {
+			case 38:
+				if (iRow - 1 > 0 ) {
+					iRow--;
+					$('#grid').jqGrid("editCell", iRow, iCol, true);
+				}
+				break;
+			case 40 :
+				if (iRow + 1 <= $('#grid')[0].p.data.length) { 
+					iRow++;
+					$('#grid').jqGrid("editCell", iRow, iCol, true);
+				};
+				break;
+			default: return;
+		}
+	});
+}
+
+function vatSumFormatter(cellvalue, options, rowObject)
+{
+   return cellvalue + "%";
+}
+
+function vatSumUnformatter(cellvalue, options, rowObject)
+{
+   return cellvalue.replace("%","");
+}
+
+function refreshSelection(rowid){
+	$('#grid .ui-state-highlight').removeClass('ui-state-highlight');
+	$('tr[id=' + rowid + ']', '#grid').addClass('ui-state-highlight');
+}
+
+
+$(window).resize(resize_the_grid);
+</script>
+
+{% block overrides %}
+
+{% endblock %}

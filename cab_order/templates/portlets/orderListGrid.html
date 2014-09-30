@@ -1,0 +1,38 @@
+{% extends 'portlets/grid.html' %}
+{% block overrides %}
+<script type='text/javascript'>
+
+ondblClickRow = function(){
+	SetCurrentOrder($('#id_anchor_Edit')[0]);
+}
+
+getData = function(page){
+	navigate.total = page ? navigate.total : 0; 
+	$.ajax({
+        url: '/orderListData/',
+        data: {
+			'BegDate':$('#id_BegDate').val(), 
+			'EndDate':$('#id_EndDate').val(), 
+			'CustomerID':$('#id_CustomerID').attr('oid'),
+			'FilterString': $('#search').search('getvalue'),
+			'WithFinished': $('#id_WithFinished').attr('checked'),
+			'page': page
+		},
+        dataType: "json",
+		type: 'GET',
+        complete: function(jsondata, stat) { 
+            if (stat == "success") {
+				res = json_parse(jsondata.responseText);
+				fillGrid(res);
+				{% if order %}
+					$("td[title='{{order}}']").parent().addClass('ui-state-highlight');
+				{% endif %}
+            }
+        },
+        error : function () {console.log("unfriendly ajax error");}
+    });
+}
+
+</script>
+
+{% endblock %}

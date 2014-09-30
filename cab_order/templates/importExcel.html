@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block navigation %}
+{%include 'portlets/headerOrderForm.html'%}
+<script type='text/javascript'>
+getData = function(page){};
+</script>
+{% endblock %}
+
+{% block content %}
+<form id="importExcel" enctype="multipart/form-data" action="" method="post">
+	{% csrf_token %}
+	<ul>
+		{{ form.as_ul }}
+	</ul>
+	<input type= 'submit' value='Создать'/>
+</form>
+<script type='text/javascript'>
+$(function() {
+	$(':input[type!="hidden"]', '#importExcel').button()
+	$('select', '#importExcel').combobox()
+});
+
+</script>
+{% endblock %}

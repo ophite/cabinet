@@ -1,0 +1,138 @@
+<div class="orderListHeader">
+	<ul class="headerOrderUl">
+		{{ headerForm.as_ul }}
+	</ul>
+</div>
+
+<script src="/content/js/customjs/jquery.ui.combobox.js" type="text/javascript"></script>
+<script type='text/javascript'>
+//===================================================================================================
+function dirtyHeaderChanged(){
+	isDirty.headerChanged = true;
+	refreshMenu();
+}
+
+function createDepartment(){
+	$( "#id_DepartmentID" )
+	.combobox('destroy')
+	.html('')
+	.combobox({
+		isLocal: true,
+		key: 'Department', 
+		initialOID: ('{{headerForm.initial.CustomerID}}' || '{{subject}}') === $( "#id_CustomerID" ).attr('oid') ? '{{headerForm.initial.DepartmentID}}' : '', 
+		initialtext: ('{{headerForm.initial.CustomerID}}' || '{{subject}}') === $( "#id_CustomerID" ).attr('oid') ? '{{headerForm.initial.DepartmentFullName}}' : '',
+		dirtyhandler: dirtyHeaderChanged,
+		loadData: function(event, data){
+			$( "#id_DepartmentID" ).combobox('ajax', data, '/subjectDepartments/', {
+				'SubjectID': $( "#id_CustomerID" ).attr('oid')
+			});
+		}
+	});
+	
+	// сброс адреса по вводу пустой строки
+	$("#id_DepartmentID + input" ).blur(function(){
+		if ($( "#id_DepartmentID + input").val() == "") {
+			$( "#id_DepartmentID" ).attr('oid', '');
+			$( "#id_DepartmentID + input").val($("#id_DepartmentID > option[oid='null']").html());
+		}
+	});
+}
+//===================================================================================================
+$(function() {
+	//-----------------------------------------------------------docDate
+	$('#id_DocDate').datepicker();
+	//-----------------------------------------------------------search
+	$('#search').search('option', 'searchhandler',getData);
+	//-----------------------------------------------------------delayLimit
+
+	{% autoescape off %}
+	var delayLimit = $( "#id_DelayLimit" );
+	{% for i in delayLimits %}
+		$('<option>')
+		.text("{{i}}")
+		.attr('value', "{{i}}")
+		{% if i == headerForm.initial.DelayLimit %}
+			.attr("selected", true)
+		{% endif %}
+		.appendTo(delayLimit);
+	{% endfor %}
+	{% endautoescape %}
+	
+	delayLimit
+	.combobox()
+	.bind('comboboxselect', function(event, ui){
+		if (delayLimit.attr('value') !== $(ui.item.option).attr('value')){
+			dirtyHeaderChanged();
+		}
+
+		delayLimit.attr('value', $(ui.item.option).attr('value'));
+		var discount = getDicsount();
+
+		if (parseInt($('#id_discount').html()) != discount){
+			$('#id_discount').html(discount);
+			recalcPrice();
+		}
+
+		$('#footerDelayLimit').html(parseInt(this.value) ? 'до ' + this.value + ' дней' : 'Предоплата');
+	});
+
+	//-----------------------------------------------------------subject
+	var customer = $( "#id_CustomerID");
+	{% if not subject %}
+		customer.autocomplete({
+			minLength: 0,
+			source: function(request, response) {
+				$.ajax({
+			        url: '/subjectFilter/',
+			        data: {
+						'FilterString':this.element.val()
+					},  
+			        dataType: "json",
+			        mtype: "GET",
+			        complete: function(jsondata, stat) {
+			            if (stat == "success"){
+							response( json_parse(jsondata.responseText));
+						}
+					},
+			        error : function () {alert("subject filter ajax error");}
+				});
+			},
+			select: function(event, ui) {
+				if (customer.attr('oid') != ui.item['id']) {
+					dirtyHeaderChanged();
+				}
+
+				customer.attr('oid', ui.item['id']);
+				createDepartment();
+			}
+		});
+		customer.attr('oid', '{{headerForm.initial.CustomerID}}');
+	{% else %}
+		customer.attr('oid', '{{subject}}')
+		.parent()
+		.css('display', 'none');
+	{% endif %}
+
+	{% autoescape off %}
+	customer.attr('value', "{{headerForm.initial.SubjectFullName}}");
+	{% endautoescape %}
+	
+	createDepartment();
+	
+	//-----------------------------------------------------------
+	$('input, textarea', '.orderListHeader').change(function(){
+		dirtyHeaderChanged();
+	});
+	
+	$('input[type="text"], textarea', '#navigation')
+	.removeClass()
+	.addClass('ui-widget ui-widget-content ui-corner-left ui-corner-right');
+	$("[readonly='true']").addClass('readonly');
+	
+	//--hack for comments height
+	if($('.headerOrderUl > li[style="display: none;"]').length){
+		$("#id_Comments").css('height',349);
+	}
+});
+
+</script>

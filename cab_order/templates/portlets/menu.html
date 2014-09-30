@@ -1,0 +1,39 @@
+<script type="text/javascript"> 
+//===================================================================================================
+$(function() {
+	$( "a", "#menu" ).button();
+	
+	{% for item in menuItems %} 
+		$("#id_anchor_{{item.Name}}").click(function(){
+			{% if item.Action %} 
+				{{item.Action}}(this);
+			{% else %}
+				{% if item.Location %}
+					document.location = '{{ item.Location }}';
+				{% endif %}
+			{% endif %}
+		});
+	{% endfor %}
+	
+	refreshMenu();
+});
+
+function refreshMenu(){
+	{% for item in menuItems %} 
+		{% if item.Predicat %}
+			$("#id_anchor_{{item.Name}}").toggle({{item.Predicat}}());
+		{% endif %}
+	{% endfor %}
+}
+refreshMenu.ajaxProcessing = false;
+	
+</script>
+	
+<div id ='menu' class="menu">
+	{% for item in menuItems %}
+		<a id="id_anchor_{{item.Name}}" Location='{{item.Location}}'
+		class='our-button {% if item.Right %}rightMenu{% endif %} {% if item.IsActive %}ui-state-highlight{% endif %}'>
+			{{ item.Locale }}
+		</a>
+	{% endfor %}
+</div>

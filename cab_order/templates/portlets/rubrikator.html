@@ -1,0 +1,98 @@
+<div id='leftmenu' class='rubricator'>
+<!-- ========================= rubricator ===========================-->			
+		<div id="SubBrandSearchDiv" className="SubBrandParent">
+			<div class="rubricatorHeader">Фильтр по марке:</div>
+			<div><div id="searchMultiselect_SubBrand" name="multiselect" class='selectable' className="SubBrand"></div></div>
+		</div>
+		<div id="PurposeSearchDiv" className="PurposeParent">
+			<div class="rubricatorHeader">Фильтр по назначения:</div>
+			<div><div id="searchMultiselect_Purpose" name="multiselect" class='selectable' className="Purpose"></div></div>
+		</div>
+</div>
+
+<script type="text/javascript">
+	var maxFilterLength = 30;
+
+	function fillProducts(item){
+		var element = $('div[className="' + item.ClassName + '"]');
+		var parent = $('div[className="' + item.ClassName + 'Parent"]');
+
+		if (!parent.is(":visible")) {
+			parent.show();
+		}
+				
+		var strItem = item.FullName;
+		if (strItem.length > maxFilterLength) {
+			strItem = strItem.substring(0, maxFilterLength) + '...';
+		}
+		
+		var li = $('<li>', {
+			'hidetext':item.FullName,
+			'class': 'ui-widget-content',
+			'text': strItem,
+			'FilterID': item.FilterID
+		}).appendTo(element);
+	}
+	
+	function search(filterstring){
+		$('div[className$="Parent"]').hide();
+		$('div[className]', 'div[className$="Parent"]').html('');
+
+	    $.ajax({
+	        url: '/itemFilter/',
+	        data: {
+				'FilterString': filterstring,
+				'FilterID': 'null'
+			},  
+	        dataType: "json",
+	        mtype: "GET",
+	        complete: function(jsondata, stat) { 
+	            if (stat == "success") {
+					var res = json_parse(jsondata.responseText);
+					for (var i = 0; i < res['rubrikator'].length; i++) {
+						fillProducts(res['rubrikator'][i]);
+					}
+					
+					$('[name=multiselect] > li').bind( "click", function(){
+						$('img', 'div[className$="Parent"]').remove();
+						$('<img>', {
+							'class':'header-menu-searchApply',
+							'src': '/content/img/search.jpg'
+						})
+						.bind('click', function(){
+							$('#search').search('setvalue', $(this).next().attr('hidetext')).search('callsearchhandler');
+						})
+						.insertBefore($(this));
+
+						var tst = new Date().getTime();
+						delayCall.tst = tst;
+						
+						$('[name=multiselect] > li').removeClass('ui-selected');
+						$(this).addClass('ui-selected');
+						
+						setTimeout(function(){
+							delayCall(getData, tst);
+						}, 50);
+					});
+					fillGrid(res);
+	            }
+	        },
+	        error : function () {console.log("unfriendly ajax error");}
+		});
+	}
+
+	$(function() {
+		$('#search').bind('searchsearchtrigger', function(event, data){
+			var tst = new Date().getTime();
+			delayCall.tst = tst;
+			setTimeout(function(){
+				delayCall(search, tst, $('#search').search('getvalue'));
+			}, 150);
+		});
+		
+		if($('#search').search('getvalue').length > 0) {
+			$('#search').search('callsearchhandler');
+		}
+		$('#SubBrandSearchDiv, #PurposeSearchDiv').hide();
+	});	
+</script>

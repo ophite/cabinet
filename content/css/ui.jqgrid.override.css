@@ -1,0 +1,38 @@
+/*from ui.jqgrid.css*/
+.ui-jqgrid .ui-jqgrid-hbox {overflow: hidden;}
+.ui-jqgrid .ui-jqgrid-htable th div {font-size: 11px; padding: 4px 3px;}
+.ui-jqgrid tr.ui-row-ltr td {font-size:11px; padding: 0 4px; vertical-align:middle;}
+.ui-jqgrid .ui-pg-input { font-size:11px;}
+.ui-jqgrid .ui-jqgrid-bdiv {overflow: hidden;}
+
+
+/*from jqgrid-ui-1.8.6.custom.css*/
+.ui-widget { font-family: Arial, sans-serif; font-size: 11px; }
+.ui-state-highlight, .ui-widget-content .ui-state-highlight, .ui-widget-header .ui-state-highlight {border: 1px solid #A6C9E2; color: #222222; background: none repeat scroll 0 0 #A6C9E2 !important; } /*96C2E6*/
+.ui-widget-content .ui-state-hover{ border: 1px solid #A6C9E2; background: transparent; color: #222222; }
+.ui-button {
+	margin-right: 0;
+}
+
+.ui-menu-item .ui-state-hover {
+	background-color: #96C2E6;
+}
+
+/*from jquery.ui.core*/
+#ui-datepicker-div{
+	display: none;
+}
+
+#gbox_grid{
+	border-width: 3px;
+}
+
+/*jquery.ui.button*/
+button.ui-button-icon-only{
+	width:20px;
+}
+
+.ui-button .ui-button-icon-primary{
+	margin-top: -11px;
+}
+

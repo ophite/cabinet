@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block menu %}
+
+<script type="text/javascript">
+
+function IsOrderSelected(){
+	return Boolean($('#grid').getGridParam('selrow'));
+}
+
+function IsOrderNotFinished(){
+	var id = $('#grid').getGridParam('selrow');
+	var data = $('#grid').getRowData(id);
+	return Boolean($('#grid').getGridParam('selrow') && !data['IsFinished']);
+}
+
+function SetCurrentOrder(el){
+	var selrow = $('#grid').getGridParam('selrow');
+	var data = $('#grid').getRowData(selrow);
+	document.location = el.getAttribute('Location') + data['OID'];
+}
+
+function DisposeCurrentOrder(el) {
+	var selrow = $('#grid').getGridParam('selrow');
+	var data = $('#grid').getRowData(selrow);
+	
+	$.ajax({
+        url: el.getAttribute('Location') + data['OID'] + '/' + navigate.page,
+        data: {
+		},  
+        dataType: "json",
+        complete: function(jsondata, stat) { 
+            if (stat == "success"){
+				var error = json_parse(jsondata.responseText)['error'];
+				if(error){
+					alert(error);
+				} else {
+					document.location = '/orderList/?page=' + navigate.page;
+				}
+        	}
+		},
+        error : function () {alert("subject filter ajax error");}
+	});
+}
+
+function DeleteCurrentOrder(el){
+	var selrow = $('#grid').getGridParam('selrow');
+	var data = $('#grid').getRowData(selrow);
+
+	document.location =  el.getAttribute('Location') + data['OID'] + '/' + navigate.page;
+}
+
+function CallSearch(el) {
+	$('#search').search('callsearchhandler');
+}
+
+</script>
+{% endblock %}
+
+{% block navigation %}
+	<script type='text/javascript'>
+		function findSubject( request, response ) {
+			$.ajax({
+		        url: '/subjectFilter/',
+		        data: {
+					'FilterString':this.element.val()
+				},  
+		        dataType: "json",
+		        mtype: "GET",
+		        complete: function(jsondata, stat) { 
+		            if (stat == "success"){
+						response( json_parse(jsondata.responseText))
+		        	}
+				},
+		        error : function () {alert("subject filter ajax error");}
+			});
+		}
+		function validateHeaderOrderListForm(){
+			var res = validateDate($('#id_BegDate')[0], $('#DocDateError')) || $('#id_BegDate').val() == '';
+			res = res && validateDate($('#id_EndDate')[0], $('#DocDateError')) || $('#id_EndDate').val() == '';
+			  
+			$('#FormError').html(res ? '': 'не корректная дата');
+			return res;
+		}
+		
+		function findOrder(){
+			//from main.js
+			if(!validateHeaderOrderListForm()){
+				return;
+			}
+			
+			$.ajax({
+		        url: '/orderListData/',
+		        data: {
+					'BegDate':$('#id_BegDate').val(), 
+					'EndDate':$('#id_EndDate').val(), 
+					'CustomerID': $('#id_CustomerID').attr('oid'),
+					'FilterString': $('#search').search('getvalue'),
+					'WithFinished': $('#id_WithFinished').attr('checked'),
+				},
+		        dataType: "json",
+				type: 'GET',
+		        complete: function(jsondata, stat) { 
+		            if (stat == "success") {
+						navigate.page = 1;
+						text = jsondata.responseText;
+						res = json_parse(jsondata.responseText);
+						fillGrid(res);
+						{% if order %}
+							$("td[title='{{order}}']").parent().addClass('ui-state-highlight');
+							$("#id_anchor_Add").toggle(true);
+							$("#id_anchor_Edit").toggle(true);
+						{% endif %}
+		            }
+		        },
+		        error : function () {console.log("orderList unfriendly ajax error");}
+		    });	
+		}
+		$(function(){
+						
+			$('#id_BegDate, #id_EndDate').datepicker().bind('change', function() {validateHeaderOrderListForm(this, $("#ErrorForm"));});
+			//========================================================= search functionality ===========================================
+			$('#search').search('option', 'searchhandler', findOrder);
+			//========================================================= end search functionality ========================================
+			
+			var customer = $( "#id_CustomerID");
+			{% if not subject %}
+				customer.autocomplete({
+					minLength: 0,
+					source: function( request, response ) {
+						customer.attr('oid', '');
+					
+						$.ajax({
+					        url: '/subjectFilter/',
+					        data: {
+								'FilterString':this.element.val()
+							},  
+					        dataType: "json",
+					        mtype: "GET",
+					        complete: function(jsondata, stat) { 
+					            if (stat == "success"){
+									response(json_parse(jsondata.responseText))
+					        	}
+							},
+					        error : function () {alert("subject filter ajax error");}
+						});
+					},
+					select: function(event, ui) {
+						customer.attr('oid', ui.item['id'])
+						$('#search').search('setvalue', customer.attr('value'))
+									.search('callsearchhandler');
+					}
+				}).bind('change', function(){
+					$(this).trigger('source');
+				});
+				customer.attr('oid', '{{form.initial.CustomerID|default:""}}');
+			{% else %}
+				customer.attr('oid', '{{subject|default:""}}')
+				.parent()
+				.css('display', 'none');
+			{% endif %}
+			
+			$('input[type="text"]').addClass('ui-widget ui-widget-content ui-corner-left ui-corner-right');
+			customer.attr('value', "{{form.initial.SubjectFullName}}");
+			
+			{% if form.initial.WithFinished %}
+				$("#id_WithFinished")[0].checked = {{form.initial.WithFinished}};
+			{%endif%}
+			
+			{% if is_finished %}
+				alert('it has been finished, sorry');
+			{% endif %}
+		});
+	</script>
+	
+<div id='orderListHeader' class="orderListHeader">
+	<label id="FormError" class="validation_message"></label>
+	{{ form.as_ul }}
+</div>
+	
+{% endblock %}
+
+{%block content%}
+	{%include 'portlets/orderListGrid.html'%}
+	<script type='text/javascript'>
+		$(function(){
+			{% if order %}
+				$("td[title='{{order}}']").parent().addClass('ui-state-highlight');
+				$("#id_anchor_Add").toggle(true);
+				$("#id_anchor_Edit").toggle(true);
+			{% endif %};
+		});
+	
+	</script>
+{%endblock%}

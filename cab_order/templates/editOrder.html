@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+
+{% block menu %}
+<script type="text/javascript">
+
+function IsReadOnly(){
+	return {% if readonly %} false {% else %} true {% endif %};
+}
+
+function isDirty(){
+	res = '';
+	for (var ItemID in getChanges.items) {
+		res += getChanges.items[ItemID]['RowState'];
+	}
+	isDirty.gridChanged = Boolean(res);
+	 
+	return isDirty.gridChanged || isDirty.headerChanged;
+}
+
+isDirty.headerChanged = {% if IsNew %} true {%else%} false {% endif %};
+isDirty.gridChanged = false;
+
+function FinishCurrentOrder(el){
+	if (parseFloat($('#id_amount').html()) < 500.00){
+		alert('Сумма заказа меньше 500 грн');
+		return;
+	}
+	
+	if (isDirty()){
+		SaveCurrentOrder(el);
+	}
+	else {
+		$.ajax({
+	        url: el.getAttribute('Location'),
+	        data: {},  
+	        dataType: "json",
+	        complete: function(jsondata, stat) { 
+	            if (stat == "success"){
+					var error = json_parse(jsondata.responseText)['error'];
+					if(error){
+						alert(error);
+					} else {
+						document.location = '/orderList/';
+					} 
+	        	}
+			},
+	        error : function () {alert("save order unfriendly ajax error!");}
+		});
+	}
+}
+
+function DeleteCurrentOrder(el){
+	document.location =  el.getAttribute('Location');
+}
+
+function SaveHeaderFromNew(el){
+	$(el).attr('Location', '/editOrder/add/');
+	SaveCurrentOrder(el);
+}
+
+function CallSearch(el) {
+	$('#search').search('callsearchhandler');
+}
+
+var controlClass = [];
+function SaveCurrentOrder(el){
+	var url = el.getAttribute('Location') || '/editOrder/current/';
+	
+	if (isDirty.headerChanged) {
+		$.ajax({
+	        url: '/saveOrderHeader/',
+	        data: {
+				'DocDate':		$('#id_DocDate').val(), 
+				'DelayLimit': 	$('#id_DelayLimit').attr('value'),
+				'CustomerID':	$('#id_CustomerID').attr('oid'),
+				'DepartmentID':	$('#id_DepartmentID').attr('oid'),
+				'Comments':		$('#id_Comments').val(),
+			},
+	        dataType: "json",
+			type: 'POST',
+			complete: function(jsondata, stat) {
+	            if (stat == "success") {
+					var res = json_parse(jsondata.responseText);
+					$('.validation_message').prev().remove();
+					$('.validation_message').next().remove();
+					$('.validation_message').remove();
+					$('.validation_control').removeClass('validation_control');
+
+					for(var kv in controlClass){
+						var control= $(kv);
+						if(!control.is(":visible"))
+							control = control.next();
+
+						control.addClass(controlClass[kv]);
+					}
+					
+					controlClass = [];
+					
+					if (res['errors']){
+						for(var key in res['errors']){
+							var control= $('#id_'+ key);
+							if(!control.is(":visible")){
+								control = control.next();
+							}
+								
+							controlClass['#id_'+ key] = control.attr('class');
+																				
+							$('<br>').insertAfter(
+								$('<span>', {
+									'text': res['errors'][key].join('; '),
+									'class': 'validation_message'
+								})
+								.insertAfter(
+									$('</br>')
+									.insertBefore(control
+									.removeClass()
+									.addClass('validation_control'))
+								)
+							);
+						}
+						
+						return;
+					}
+					if(isDirty.gridChanged) {
+						saveOrder(false, url);
+					}
+					else {
+						document.location = url;
+					}
+				}
+	        },
+	        error : function () {console.log("saveOrder unfriendly ajax error");}
+		});	
+	}
+	else if(isDirty.gridChanged) {
+		saveOrder('false', url);
+	}
+	else {
+		document.location = url;
+	}
+}
+
+</script> 
+{% endblock %}
+
+{% block navigation %}
+	{% if gridType == 'current' %}
+		{%include 'portlets/headerOrderForm.html'%}
+	{% else %}
+		{% include 'portlets/rubrikator.html' %}
+	{% endif %}
+{% endblock %}
+
+{% block header_summary %}
+	Итого: <span id="totalSum"> 0 </span> грн.
+{% endblock %}	
+
+{%block content%}
+	{%include 'portlets/orderGrid.html'%}
+	
+	{% if form.priceSum %}
+	<div class="footerSum">
+		<div class="footerSumNumb">
+			<div>{{form.priceSum}} грн.</div>
+			<div>{{form.vatSum}} грн.</div>
+			<div>{{form.amount}} грн.</div>
+		</div>
+		<div class="footerSumCaption">
+			<div>{{form.priceSum.label_tag}}</div>
+			<div>{{form.vatSum.label_tag}}</div>
+			<div>{{form.amount.label_tag}}</div>
+		</div>
+		
+		<div class="footerSumNumb">
+			<div>{{form.basePriceSum}} грн.</div>
+			<div>{{form.discountSum}} грн.</div>
+		</div>
+		<div class="footerSumCaption">
+			<div>{{form.basePriceSum.label_tag}}</div>
+			<div>{{form.discountSum.label_tag}}</div>
+		</div>
+		
+		<div class="footerSumNumb">
+			<div>{{form.discount}} %</div>
+			<div>
+				<label id='footerDelayLimit'>
+					{% if headerForm.initial.DelayLimit %}
+						до {{headerForm.initial.DelayLimit}} дней
+					{% else %}
+						Предоплата
+					{% endif %}
+				</label> 
+			</div>
+		</div>
+		<div class="footerSumCaption footerSale">
+			<div>{{form.discount.label_tag}}</div>
+			<div>Отсрочка</div>
+		</div>
+	</div>
+	{% endif %}
+{%endblock%}

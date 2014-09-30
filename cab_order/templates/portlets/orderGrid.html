@@ -1,0 +1,225 @@
+{% extends 'portlets/grid.html' %}
+
+{% block overrides %}
+<script type='text/javascript'>
+{% if rules %}{% autoescape off %}
+	getChanges.rules = {{rules}};
+{% endautoescape %}{% endif %}
+
+//---------------------------------------custom functions--------------------------------
+saveOrder = function(force_override, url){
+	if (!isDirty()) {
+		document.location = url || '/editOrder/current/'; 
+		return;
+	}
+	$.ajax({
+  		url: '/saveOrder/' + force_override,
+  		data: {'items': getChanges()},
+		dataType: "json",
+		type: 'GET',
+		complete: function(jsondata, stat) {
+            if (stat == "success") {
+				if (jsondata.responseText){
+					res = json_parse(jsondata.responseText);
+					if (res['error'] && confirm("Данные изменены другим пользователем. Продолжить?")){
+						saveOrder(true);
+						return;	
+					} 
+				}
+				document.location = url || '/editOrder/current/';
+			}
+        },
+		error:function (){
+			console.log('unfriendly ajax error');
+		}
+	});
+}
+
+getAmount = function(){
+	var priceSum = 0;
+	for (var ItemID in getChanges.items){
+		var row = getChanges.items[ItemID];
+		priceSum += row['BasePrice'] * row['Quantity'];
+	}
+	return priceSum;
+}
+
+getDicsount = function(){
+	var discount = 0;
+	var amount = getAmount();
+	var delayLimit = $('#id_DelayLimit').val() || 0;
+	
+	//pick up corresponding rule
+	for (var i in getChanges.rules){
+		var rule = getChanges.rules[i];
+		if (rule['FullName'] == 'value'){
+			if ((!rule['MinLimit'] || rule['MinLimit'] <= amount) && (!rule['MaxLimit'] || rule['MaxLimit'] > amount)){
+				discount += rule['Value'];
+			}
+		}
+		if (rule['FullName'] == 'delay'){
+			if ((!rule['MinLimit'] || rule['MinLimit'] <= delayLimit) && (!rule['MaxLimit'] || rule['MaxLimit'] > delayLimit)){
+				discount += rule['Value'];
+			}
+		} 		
+	}
+	return discount;
+}
+
+recalcPrice = function(){
+	var discount = $('#id_discount').html(discount);
+	
+	for (var id = 1; id <= $("#grid").getGridParam("reccount"); id++){
+		var data = $('#grid').getRowData(id);
+		var price = Math.floor(data['BasePrice'] * (100.0 - discount) + 0.5) / 100.0;
+		$('#grid').setRowData(id, {
+			'Price': price,
+			'PriceSum': Math.round(data['Quantity'] * price * 100) / 100.0,
+			'VatSum': Math.round(data['Quantity'] * price * data['VatPercent']) / 100.0,
+			'Amount': Math.round(data['Quantity'] * price * (1 + data['VatPercent'])) / 100.0
+		});
+	}
+}
+
+updateQuantity = function(){
+	var data = $('#grid')[0].p.data;
+	for (var ItemID in getChanges.items) {
+		for(var i in data){
+			if (data[i]['ItemID'] == ItemID) {
+				data[i]['Quantity'] = getChanges.items[ItemID]['Quantity'];
+				break;
+			} 
+		}
+	}
+	$('#grid').trigger('reloadGrid');
+	for(var i in data) { 
+		recalcRow(parseInt(i) + 1);
+	}
+}
+
+setQuantity = function(data){
+	getChanges.items = data;
+	updateQuantity();
+	afterFillGrid();
+	updateHeader();
+}
+
+//---------------------------------------overrrides--------------------------------------
+beforeFillGrid = function(res){
+	for (var ItemID in getChanges.items) {
+		for(var i in res['data']){
+			if (res['data'][i]['ItemID'] == ItemID) {
+				res['data'][i]['Quantity'] = getChanges.items[ItemID]['Quantity'];	
+				break;
+			} 
+		}
+	}
+}
+
+recalcRow = function(id){
+	var d = $('#grid').getRowData(id);
+	$('#grid').setRowData(id, {
+		'PriceSum': d['Price'] * d['Quantity'],
+		'VatSum': d['Price'] * d['Quantity'] * d['VatPercent'],
+		'Amount': d['Price'] * d['Quantity'] + parseFloat(d['Price'] * d['Quantity'] * d['VatPercent'])
+	})
+}
+
+afterFillGrid = function(){
+	$('#id_discount').html(getDicsount());
+	recalcPrice();
+	$("td[aria-describedby='grid_Quantity']").css('background-color','#ffffdf');
+}
+
+updateHeader = function(){
+	var priceSum = 0;
+	var basePriceSum = 0;
+	var discount = parseFloat($('#id_discount').html());
+	
+	for (var i in getChanges.items){
+		var d = getChanges.items[i];
+		var price = Math.floor(d['BasePrice'] * (100.0 - discount) + 0.5) / 100.0;
+		
+		basePriceSum += round(d['BasePrice'] * d['Quantity'], 2);
+		priceSum += round(price * d['Quantity'], 2) 
+	}
+	
+	var vatSum = round(priceSum / 5.0, 2);
+	
+	$('#id_basePriceSum').html(currencyFormatter(basePriceSum));
+	$('#id_discountSum').html(currencyFormatter(basePriceSum - priceSum));
+	
+	$('#id_priceSum').html(currencyFormatter(priceSum));
+	$('#id_vatSum').html(currencyFormatter(vatSum));
+	
+	var totalSum = currencyFormatter(priceSum + vatSum);
+	$('#id_amount').html(totalSum);
+	$('#totalSum').html(totalSum)
+}
+
+afterSaveCell = function(rowid, cellname, value, iRow, iCol){
+	var data = $("#grid").getRowData(rowid);
+	var item = getChanges.items[data['ItemID']];
+	
+	switch (item && item['RowState']){
+		case undefined:
+			state = !data['Quantity'] || data['Quantity'] == '0' ? '': 'a';
+			break;
+		case 'a':
+			if (!data['Quantity'] || data['Quantity'] == '0') {
+				state = '';
+				delete getChanges.items[data['ItemID']];
+			}
+			break;
+		default:
+			state = !data['Quantity'] || data['Quantity'] == '0' ? 'd': 'm'; 
+			break;
+	}
+	
+	if (state){
+		getChanges.items[data['ItemID']] = {
+			'RowState': state, 
+			'Quantity': data['Quantity'],
+			'BasePrice': data['BasePrice'],
+			'VatPercent': data['VatPercent']
+		};
+	}
+	
+	var discount = getDicsount();
+	if (parseInt($('#id_discount').html()) != discount){
+		$('#id_discount').html(discount);
+		recalcPrice();
+	}
+	
+	updateHeader();
+	refreshMenu();
+}
+
+var colNameCaption;
+getData = function(page){	
+	colNameCaption =  colNameCaption == undefined ? $('#jqgh_Name').text() : colNameCaption;
+	$('#jqgh_Name').text($('#search').search('getvalue') !== '' ? colNameCaption + ' ('+ $('#search').search('getvalue') + ')' : colNameCaption);
+			
+	var data = {'FilterString': $('#search').search('getvalue')};
+	if ($('#leftmenu').length){
+		data['FilterID'] = $( '.ui-selected', '[name=multiselect]').attr('FilterID') || 'null';
+	}
+	if (page) {
+		data['page'] = page;
+	} else {
+		navigate.total = 1;
+		navigate.page = 1;
+	}  
+	
+	reloadGrid("/itemFilter/", data, "GET")
+}
+
+$(function() {
+	{% autoescape off %}
+		setQuantity({{ quantities }});
+	{% endautoescape %}
+});
+
+</script>
+
+{% endblock %}

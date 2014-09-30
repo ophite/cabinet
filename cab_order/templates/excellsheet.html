@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{%block content%}
+	
+<link rel="stylesheet" type="text/css" media="screen" href="/content/js/customjs/sheet/jquery.sheet.css" />
+<script src="/content/js/customjs/sheet/jquery.sheet.js" type="text/javascript"></script>
+
+<div id="jQuerySheet0" style="height: 450px;"></div>
+
+<script type='text/javascript'>
+var asheet =''
+$(function() {	
+	{% if sheet %}
+		{% autoescape off %}
+		asheet = json_parse('{{sheet}}')
+		
+		alert(asheet)		
+		{% endautoescape %}
+
+//		alert(json_parse('{{sheet}}'))
+	{% endif %}
+	
+//	$(':input[type="submit"]', '#importExcel').unbind('click').click(function(){
+//		alert('click')
+//		$.ajax({
+//	        importExcel: '/showExcelSheet/',
+//	        data: {
+//			},
+//	        dataType: "json",
+//			type: 'POST',
+//			complete: function(jsondata, stat) {
+//				alert('success')
+//	            if (stat == "success") {
+//					alert(jsondata.responseText)
+//				}
+//	        },
+//	        error : function () {alert("showExcelSheet unfriendly ajax error");}
+//		});	
+//	});
+
+{% if sheet %}
+	{% autoescape off %}
+//	jss = json_parse('{{sheet}}')
+//	alert(jss)
+	$('#jQuerySheet0').sheet({
+		title: 'Spreadsheet Playground',
+	//	inlineMenu: inlineMenu($.sheet.instance),
+		buildSheet: $.sheet.makeTable.json([json_parse('{{sheet}}')])
+	});
+	{% endautoescape %}
+
+{% endif %}
+//	
+});
+</script> 
+{% endblock %}

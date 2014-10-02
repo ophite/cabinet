@@ -101,7 +101,7 @@ def exec_procedure(proc_name, functor, *args):
    
     print '-' * 150 + '\n' + cmd.split('; ')[-1] + '\n' + '-' * 150
     cur.execute(cmd)    
-    ipdb.set_trace()
+    # ipdb.set_trace()
     items = functor(cur)
     con.commit()
     con.close()

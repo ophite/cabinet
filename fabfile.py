@@ -7,7 +7,7 @@ from fabric.api import local, settings, cd, lcd, run, env, prefix
 from fabric.colors import green
 from fabric.context_managers import shell_env
 
-project_path = '~/svn/cabinet'
+project_path = '~/projects/cabinet'
 project_path_virtualenv = 'env'
 
 

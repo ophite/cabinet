@@ -204,7 +204,7 @@ class DocTradeLine(models.Model):
     
     @classmethod
     def orderHeader(cls, OID):
-        ipdb.set_trace()
+        # ipdb.set_trace()
         result = (DocTradeLine.objects.exec_dictlist().cabinet_OrderGet(OID) + [{}])[0]
         return result
     

@@ -143,8 +143,7 @@ def fill_session(func):
             return HttpResponseRedirect('/orderList/')
         
         request.session['data'] = safeDict(DocTradeLine.orderHeader(order)) 
-        # request.session['data']['TST'] = None
-        ipdb.set_trace()
+        # ipdb.set_trace()
         
         return func(request, *args, **kwargs)
     return wraps(func)(decorated)
@@ -153,11 +152,11 @@ def fill_session(func):
 @login_required
 @fill_session
 def addOrderItems(request, OID=None):
-    ipdb.set_trace()
+    # ipdb.set_trace()
     if request.session['data']['IsFinished']: 
         return HttpResponseRedirect('/editOrder/current/')
 
-    ipdb.set_trace()
+    # ipdb.set_trace()
     order = request.session['Order']
     c = {
         'columns': DocTradeLine.getColumns(request.user),
@@ -174,9 +173,8 @@ def addOrderItems(request, OID=None):
 @login_required
 @fill_session    
 def currentOrder(request):
-    ipdb.set_trace()
-    order = request.session['Order']
     # ipdb.set_trace()
+    order = request.session['Order']
     c = {
         'columns': DocTradeLine.getColumns(request.user),
         'form': forms.SummaryOrderForm(),
@@ -283,12 +281,12 @@ def saveOrderHeader(request):
     f = forms.HeaderOrderForm(request.POST)
     if f.is_valid():
         d = dict(f.cleaned_data)
-        ipdb.set_trace()
-        # if request.session.get('Order'):
-        #     d.update({'OrderID': request.session['Order']})
-        #     request.session['TST'] = str(Order.updateOrder(**d))
-        # else:
-        #     request.session['Order'] = Order.createOrder(**d)
+        # ipdb.set_trace()
+        if request.session.get('Order'):
+            d.update({'OrderID': request.session['Order']})
+            request.session['TST'] = str(Order.updateOrder(**d))
+        else:
+            request.session['Order'] = Order.createOrder(**d)
     
     # ipdb.set_trace()
     return HttpResponse(json.dumps({'errors': f.errors}) if f.errors else '{}')     
@@ -305,7 +303,7 @@ def saveOrderHeader(request):
 
 @login_required
 def orderListData(request):
-    ipdb.set_trace()
+    # ipdb.set_trace()
     request.session.update({
         'BegDate' : request.GET.get('BegDate'),
         'EndDate' : request.GET.get('EndDate'),

@@ -20,11 +20,12 @@ from models import *
 import forms
 import pyodbc
 import xlrd
-
 import ipdb
 
+
 perPage = 20
-#===================================================================================================
+
+
 def login(request):
     if request.method == 'POST':
         form = forms.LoginForm(request.POST)
@@ -44,9 +45,11 @@ def login(request):
         form = forms.LoginForm()        
     return render_to_response('login.html', locals(), context_instance=RequestContext(request))
 
+
 def logout(request):
     auth.logout(request)
     return HttpResponseRedirect('/accounts/login/')
+
 
 def changePassword(request):
     if request.method == 'POST':
@@ -98,6 +101,7 @@ def importExcel(request):
 #    return render_to_response('importExcel.html', {'form': forms.ExcelImportForm()}, context_instance=RequestContext(request))
 #    return render_to_response('importExcel.html', {'sheet': json.dumps({'metadata':metadata, 'data':data}), 'form': forms.ExcelImportForm()}, context_instance=RequestContext(request))
 
+
 @login_required
 def excellsheet(request, data, metadata):
 #    print request.FILES.get('File', '')
@@ -144,7 +148,8 @@ def fill_session(func):
         
         return func(request, *args, **kwargs)
     return wraps(func)(decorated)
-#===================================================================================================
+
+
 @login_required
 @fill_session
 def addOrderItems(request, OID=None):
@@ -164,6 +169,7 @@ def addOrderItems(request, OID=None):
     }
 
     return render_to_response('editOrder.html', c, context_instance=RequestContext(request))
+
 
 @login_required
 @fill_session    
@@ -187,6 +193,7 @@ def currentOrder(request):
        
     return render_to_response('editOrder.html', c, context_instance=RequestContext(request))
 
+
 @login_required
 def newOrder(request):
     # ipdb.set_trace()
@@ -202,6 +209,7 @@ def newOrder(request):
     }
     
     return render_to_response('editOrder.html', c, context_instance=RequestContext(request))
+
 
 @login_required    
 def orderList(request):
@@ -233,12 +241,14 @@ def orderList(request):
     }
     return render_to_response('orderList.html', c, context_instance=RequestContext(request))
 
+
 @login_required
 def editOrder(request, OID):
     # ipdb.set_trace()
     request.session['Order'] = OID
     return currentOrder(request)
-#===================================================================================================
+
+
 @login_required
 def itemFilter(request):
     # ipdb.set_trace()
@@ -256,14 +266,17 @@ def itemFilter(request):
         'setPage': request.GET.get('page', 1),
     }))
     
+
 @login_required
 def subjectDepartments(request):
     return HttpResponse(json.dumps(Department.subjectDepartments(request.GET.get('SubjectID', 0))))
+
 
 @login_required
 def subjectFilter(request):
     # ipdb.set_trace()
     return HttpResponse(json.dumps(Subject.filter(request.GET.get('FilterString', ''), 10)))
+
 
 @login_required
 def saveOrderHeader(request):
@@ -280,6 +293,7 @@ def saveOrderHeader(request):
     # ipdb.set_trace()
     return HttpResponse(json.dumps({'errors': f.errors}) if f.errors else '{}')     
 
+
 #@login_required
 #def saveGridLayout(request):
 #    request.session.update({
@@ -287,6 +301,7 @@ def saveOrderHeader(request):
 #    })
 #    
 #    return HttpResponse('{}')
+
 
 @login_required
 def orderListData(request):
@@ -316,6 +331,7 @@ def orderListData(request):
         'total': Order.orderListPagesCount(BegDate, EndDate, FilterString, CustomerID, WithFinished, perPage) if not request.GET.get('page') else 0,
     }))
 
+
 @login_required
 def saveOrder(request, force_override=False):
     "сохраняет детали заказа"    
@@ -335,15 +351,18 @@ def saveOrder(request, force_override=False):
     else:
         return HttpResponse(json.dumps({'error': u'DataChanged'}))
     
+
 @login_required
 def selectOrder(request, action, OID):
     request.session['Order'] = OID
     return HttpResponseRedirect('/editOrder/' + action)
 
+
 @login_required
 def saveFilter(request, form, filter):
     request.session['FilterList' if form == 'list' else 'FilterOrder'] = filter
     return HttpResponse('')
+
 
 @login_required
 def finishOrder(request, OID=None, page=1):
@@ -359,6 +378,7 @@ def finishOrder(request, OID=None, page=1):
     
     return HttpResponse('{}')
 
+
 @login_required
 def deleteOrder(request, OID=None, page=1):
     order = OID or request.session['Order']
@@ -367,6 +387,7 @@ def deleteOrder(request, OID=None, page=1):
         Order.deleteOrder(order)
     
     return HttpResponseRedirect('/orderList/?page=%s' % page)
+
 
 @login_required
 def manageEntrance(request):

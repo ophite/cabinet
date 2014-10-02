@@ -9,6 +9,7 @@ import pyodbc
 import ipdb
 from decimal import Decimal
 
+
 #Преобразователи типов: с sql в python и обратно
 toSqlDict = {
     str:            lambda x: "'" + x + "'" if x != 'null' else x,
@@ -19,8 +20,8 @@ toSqlDict = {
     date:           lambda x: "'" + x.isoformat().replace('-','') + "'",
     'default':      lambda x: str(x),
 }
-
 toSql = lambda x: toSqlDict.get(x.__class__, toSqlDict['default'])(x)
+
 
 fromSqlDict = {
     float:      lambda x: int(x) if x.is_integer() else x, #выкосить
@@ -31,8 +32,8 @@ fromSqlDict = {
     bytearray:  lambda x: x.decode('cp1251'),
     'default':  lambda x: x,
 }
-
 fromSql = lambda x: fromSqlDict.get(x.__class__, fromSqlDict['default'])(x)
+
 
 columnNames = lambda model: [col.get('name') for col in model.columns] if hasattr(model, 'columns') else []
 
@@ -58,10 +59,12 @@ def get_objects(cursor, model):
             break;
     return items
 
+
 def get_json(cursor, model):
     " по курсору запроса возвращает данные в формате json "
     # ipdb.set_trace()
     return json.dumps(get_objects(cursor, model))
+
 
 def get_dictlist(cursor):
     # ipdb.set_trace()
@@ -69,9 +72,11 @@ def get_dictlist(cursor):
         dict(zip([item[0] for item in cursor.description], fromSql(x))) for x in cursor.fetchall()
     ]
 
+
 def get_value(cursor):
     # ipdb.set_trace()
     return fromSql(cursor.fetchall()[0][0])
+
 
 def exec_procedure(proc_name, functor, *args):
     """ выполнение хранимой процедуры(proc_name)
@@ -102,6 +107,7 @@ def exec_procedure(proc_name, functor, *args):
     con.close()
 
     return items
+
 
 def exec_sql(cmd):
     # ipdb.set_trace()
@@ -135,6 +141,7 @@ class curry:
 # def get_json(cursor, model):
 # def get_dictlist(cursor):
 # def get_value(cursor):
+
 
 class CustomManager(models.Manager):
     "менеджер по работе с моделями"
@@ -176,4 +183,3 @@ class CodaDBError(pyodbc.DatabaseError):
     def __init__(self, message):
         pyodbc.DatabaseError.__init__(self)
         self.error_text = message[1][29:-25]
-

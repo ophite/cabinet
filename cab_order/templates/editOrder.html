@@ -65,16 +65,17 @@ function CallSearch(el) {
 var controlClass = [];
 function SaveCurrentOrder(el){
 	var url = el.getAttribute('Location') || '/editOrder/current/';
-	
+
 	if (isDirty.headerChanged) {
 		$.ajax({
 	        url: '/saveOrderHeader/',
 	        data: {
-				'DocDate':		$('#id_DocDate').val(), 
-				'DelayLimit': 	$('#id_DelayLimit').attr('value'),
-				'CustomerID':	$('#id_CustomerID').attr('oid'),
-				'DepartmentID':	$('#id_DepartmentID').attr('oid'),
-				'Comments':		$('#id_Comments').val(),
+				'DocDate':				$('#id_DocDate').val(), 
+				'DelayLimit': 			$('#id_DelayLimit').attr('value'),
+				'CustomerID':			$('#id_CustomerID').attr('oid'),
+				'DepartmentID':			$('#id_DepartmentID').attr('oid'),
+				'Comments':				$('#id_Comments').val(),
+				'csrfmiddlewaretoken': '{{ csrf_token }}',
 			},
 	        dataType: "json",
 			type: 'POST',
@@ -122,6 +123,7 @@ function SaveCurrentOrder(el){
 						return;
 					}
 					if(isDirty.gridChanged) {
+						alert(url)
 						saveOrder(false, url);
 					}
 					else {

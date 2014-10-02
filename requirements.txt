@@ -1,0 +1,56 @@
+pip install xlrd
+pip install simplejson
+
+pip install Django==1.7
+
+#ldap
+#sudo apt-get install slapd ldap-utils
+pip install python-ldap
+sudo apt-get install python-dev libldap2-dev libsasl2-dev libssl-dev
+
+#pyodbc
+sudo apt-get install unixODBC-dev
+sudo apt-get install g++
+sudo apt-get install python-dev
+sudo apt-get install tdsodbc
+pip install https://pyodbc.googlecode.com/files/pyodbc-3.0.6.zip
+pip install pyodbc
+
+#freetds!
+sudo apt-get install unixodbc unixodbc-dev freetds-dev tdsodbc
+
+# CONFIG
+# example connection params
+#SQL_DATABASES = {
+#    'DSN':'sqlserverdatasource',
+#    'UID':'sa',
+#    'PWD': 'Qq123456',
+#    'DATABASE': 'coda',
+#}
+
+#~/.freetds.conf
+#[sqlserver]
+#    host = kib17 
+#    port = 1433
+#    tds version = 7.0
+#	 client charset = cp1251
+
+#etc/odbcinst.ini
+#[FreeTDS]
+#Description = TDS driver (Sybase/MS SQL)
+## Some installations may differ in the paths
+##Driver = /usr/lib/odbc/libtdsodbc.so
+##Setup = /usr/lib/odbc/libtdsS.so
+#Driver = /usr/lib/x86_64-linux-gnu/odbc/libtdsodbc.so
+#Setup = /usr/lib/x86_64-linux-gnu/odbc/libtdsS.so
+#CPTimeout =
+#CPReuse =
+#FileUsage = 1
+
+#etc/odbc.ini
+#[sqlserverdatasource]
+#Driver = FreeTDS
+#Description = ODBC connection via FreeTDS
+#Trace = No
+#Servername = sqlserver
+#Database = coda

@@ -1,8 +1,10 @@
 # coding=utf-8
 from django.db import models
 from helpers.sql import CustomManager, exec_sql, get_value
-from django.utils import simplejson as json
+# from django.utils import simplejson as json
+import simplejson as json
 from helpers.base import createFilter, toAutocomplete
+import ipdb
 
 #def hideColumns(request, columns):
 #    colByName = lambda cols, colName: [x for x in cols if x['name'] == colName][0]
@@ -202,7 +204,9 @@ class DocTradeLine(models.Model):
     
     @classmethod
     def orderHeader(cls, OID):
-        return (DocTradeLine.objects.exec_dictlist().cabinet_OrderGet(OID) + [{}])[0]
+        ipdb.set_trace()
+        result = (DocTradeLine.objects.exec_dictlist().cabinet_OrderGet(OID) + [{}])[0]
+        return result
     
     @classmethod
     def conditionRulesGet(cls):
@@ -211,8 +215,7 @@ class DocTradeLine(models.Model):
     @classmethod
     def orderGetQuantityPrice(cls, OID):
         return json.dumps(dict([
-          (d.pop('ItemID'), dict(d.items() + [('RowState', '')]))
-          for d in DocTradeLine.objects.exec_dictlist().cabinet_OrderGetQuantityPrice(OID)   
+          (d.pop('ItemID'), dict(d.items() + [('RowState', '')])) for d in DocTradeLine.objects.exec_dictlist().cabinet_OrderGetQuantityPrice(OID)   
         ]))
 
     @classmethod

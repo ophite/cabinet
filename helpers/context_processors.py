@@ -4,6 +4,7 @@ from django.core.urlresolvers import resolve
 from menu import menuHeader
 from cab_order.models import UserProfile
 from cab_order.codamodels import DocTradeLine, Subject
+import ipdb
 
 #===================================================================================================
 get_menu_by_name = lambda name: ([x for x in menuHeader if x['Name'] == name] + [{}])[0]

@@ -1,4 +1,6 @@
-﻿from django.conf.urls.defaults import *
+﻿# from django.conf.urls.defaults import *
+from django.conf.urls import patterns, include, url
+from django.contrib import admin
 from cab_order import views
 import settings
 
@@ -39,6 +41,7 @@ urlpatterns = patterns('',
     #login
     (r'^	', views.logout),    
     (r'^accounts/login/$', views.login),
+    (r'^logout$', views.logout),
     (r'^changePassword/$', views.changePassword),
     
     #admin

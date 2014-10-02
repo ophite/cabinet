@@ -117,7 +117,7 @@ begin try
     declare @Orders table (OID bigint, ROW bigint);
     set @BegDate = isnull(@BegDate, getdate() - 30);
     set @EndDate = isnull(@EndDate, getdate());
-
+    
     if @FilterString is null or @FilterString = '' or @FilterString = '*' or @FilterString = '"*"' or @FilterString = '"**"' begin -- searching by Customer or null
         if @CustomerID is null
             insert @Orders select  x.OID, x.ROW

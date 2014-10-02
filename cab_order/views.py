@@ -9,7 +9,8 @@ from django.core import serializers
 from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.utils import simplejson as json
+# from django.utils import simplejson as json
+import simplejson as json
 
 from functools import wraps
 from helpers.base import dictObject, dateFormat, safeDict, safeConvert
@@ -20,7 +21,7 @@ import forms
 import pyodbc
 import xlrd
 
-
+import ipdb
 
 perPage = 20
 #===================================================================================================
@@ -132,11 +133,14 @@ def excellsheet(request, data, metadata):
 
 def fill_session(func):
     def decorated(request, *args, **kwargs):
+        
         order = request.session.get('Order')
         if not order: 
             return HttpResponseRedirect('/orderList/')
         
-        request.session['data'] = safeDict(DocTradeLine.orderHeader(order))
+        request.session['data'] = safeDict(DocTradeLine.orderHeader(order)) 
+        # request.session['data']['TST'] = None
+        ipdb.set_trace()
         
         return func(request, *args, **kwargs)
     return wraps(func)(decorated)
@@ -144,9 +148,11 @@ def fill_session(func):
 @login_required
 @fill_session
 def addOrderItems(request, OID=None):
-    if request.session['data']['IsFinished']:        
-        return HttpResponseRedirect('/editOrder/current')
-    
+    ipdb.set_trace()
+    if request.session['data']['IsFinished']: 
+        return HttpResponseRedirect('/editOrder/current/')
+
+    ipdb.set_trace()
     order = request.session['Order']
     c = {
         'columns': DocTradeLine.getColumns(request.user),
@@ -162,8 +168,9 @@ def addOrderItems(request, OID=None):
 @login_required
 @fill_session    
 def currentOrder(request):
+    ipdb.set_trace()
     order = request.session['Order']
-    
+    # ipdb.set_trace()
     c = {
         'columns': DocTradeLine.getColumns(request.user),
         'form': forms.SummaryOrderForm(),
@@ -175,13 +182,14 @@ def currentOrder(request):
         'quantities': DocTradeLine.orderGetQuantityPrice(order),
         'delayLimits': [0, 7, 14, 21],
         'gridType': 'current',
-        'readonly': request.session['data']['IsFinished'],            
+        'readonly': request.session['data']['IsFinished'] if len(request.session['data']) > 0 else False,            
     }
        
     return render_to_response('editOrder.html', c, context_instance=RequestContext(request))
 
 @login_required
 def newOrder(request):
+    # ipdb.set_trace()
     request.session.pop('Order', None)
     CustomerID = request.session.get('CustomerID')
 
@@ -197,7 +205,8 @@ def newOrder(request):
 
 @login_required    
 def orderList(request):
-    CustomerID = request.session.get('CustomerID')
+    # ipdb.set_trace()
+    CustomerID =  request.GET.get('CustomerID', '') #request.session.get('CustomerID')
     SubjectFullName = Subject.get(CustomerID)[0]['FullName'] if CustomerID else ''
     FilterString = request.GET.get('FilterString', '')
     BegDate = datetime.strptime(request.session.get('BegDate'), dateFormat) if request.session.get('BegDate') else 'null'
@@ -226,11 +235,13 @@ def orderList(request):
 
 @login_required
 def editOrder(request, OID):
+    # ipdb.set_trace()
     request.session['Order'] = OID
     return currentOrder(request)
 #===================================================================================================
 @login_required
 def itemFilter(request):
+    # ipdb.set_trace()
     if not request.session.get('Order'): 
         return HttpResponse(json.dumps({'data': {}, 'total': 1, 'rubrikator': 0 }))
     
@@ -251,6 +262,7 @@ def subjectDepartments(request):
 
 @login_required
 def subjectFilter(request):
+    # ipdb.set_trace()
     return HttpResponse(json.dumps(Subject.filter(request.GET.get('FilterString', ''), 10)))
 
 @login_required
@@ -258,12 +270,14 @@ def saveOrderHeader(request):
     f = forms.HeaderOrderForm(request.POST)
     if f.is_valid():
         d = dict(f.cleaned_data)
-        if request.session.get('Order'):
-            d.update({'OrderID': request.session['Order']})
-            request.session['TST'] = str(Order.updateOrder(**d))
-        else:
-            request.session['Order'] = Order.createOrder(**d)
+        ipdb.set_trace()
+        # if request.session.get('Order'):
+        #     d.update({'OrderID': request.session['Order']})
+        #     request.session['TST'] = str(Order.updateOrder(**d))
+        # else:
+        #     request.session['Order'] = Order.createOrder(**d)
     
+    # ipdb.set_trace()
     return HttpResponse(json.dumps({'errors': f.errors}) if f.errors else '{}')     
 
 #@login_required
@@ -276,6 +290,7 @@ def saveOrderHeader(request):
 
 @login_required
 def orderListData(request):
+    ipdb.set_trace()
     request.session.update({
         'BegDate' : request.GET.get('BegDate'),
         'EndDate' : request.GET.get('EndDate'),
@@ -304,7 +319,7 @@ def orderListData(request):
 @login_required
 def saveOrder(request, force_override=False):
     "сохраняет детали заказа"    
-    
+    # ipdb.set_trace()
     order = request.session.get('Order')
     data = DocTradeLine.orderHeader(order)    
     
@@ -332,6 +347,7 @@ def saveFilter(request, form, filter):
 
 @login_required
 def finishOrder(request, OID=None, page=1):
+    # ipdb.set_trace()
     order = OID or request.session['Order']
     
     if not DocTradeLine.orderHeader(order)['IsFinished']:

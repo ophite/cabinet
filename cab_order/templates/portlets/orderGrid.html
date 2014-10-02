@@ -202,7 +202,7 @@ getData = function(page){
 			
 	var data = {'FilterString': $('#search').search('getvalue')};
 	if ($('#leftmenu').length){
-		data['FilterID'] = $( '.ui-selected', '[name=multiselect]').attr('FilterID') || 'null';
+		data['FilterID'] = $('.ui-selected', '[name=multiselect]').attr('FilterID') || 'null';
 	}
 	if (page) {
 		data['page'] = page;

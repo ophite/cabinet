@@ -3,6 +3,8 @@ from django.conf import settings
 from random import random
 from cab_order.codamodels import CodaUser
 import ldap
+import ipdb
+
 #===================================================================================================
 class ActiveDirectoryBackend:
     def authenticate(self, username=None, password=None):

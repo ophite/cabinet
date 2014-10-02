@@ -59,7 +59,7 @@ function CallSearch(el) {
 
 {% block navigation %}
 	<script type='text/javascript'>
-		function findSubject( request, response ) {
+		function findSubject(request, response ) {
 			$.ajax({
 		        url: '/subjectFilter/',
 		        data: {
@@ -128,8 +128,8 @@ function CallSearch(el) {
 				customer.autocomplete({
 					minLength: 0,
 					source: function( request, response ) {
-						customer.attr('oid', '');
-					
+						// customer.attr('oid', '');
+
 						$.ajax({
 					        url: '/subjectFilter/',
 					        data: {

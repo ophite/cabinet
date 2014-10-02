@@ -14,24 +14,32 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'db/local.db' if not PRODUCTION else '/home/pydev/trunk/pydev/cabinet/db/django.db', # 'db/django.db',  # Or path to database file if using sqlite3.
+        'NAME': 'db/local.db' if not PRODUCTION else '/home/svn/cabinet/db/django.db', # 'db/django.db',  # Or path to database file if using sqlite3.
         'USER': '',                      # Not used with sqlite3.
         'PASSWORD': '',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
     }
 }
+        # 'unicode_results': False,
+
+# SQL_DATABASES = {
+#     'PWD':'Qq123456',
+#     'UID':'sa',
+#     'DATABASE': 'coda',
+#     'DRIVER': '{FreeTDS}',
+#     'TDS_VERSION':'7',
+#     'SERVER': 'kib17',
+#     'CHARSET': 'utf-8',
+# }
 
 SQL_DATABASES = {
-    'PWD':'PyDev123456',
+    'DSN':'sqlserverdatasource',
     'UID':'sa',
+    'PWD': 'Qq123456',
     'DATABASE': 'coda',
-    'DRIVER': '{FreeTDS}',
-    'TDS_VERSION':'7',
-    'SERVER': 'kib17',
-    'CHARSET': 'utf-8',
 }
-
+ 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
@@ -71,7 +79,12 @@ MEDIA_URL = '' #'https://pydev.asnova.com/static/admin/'
 # URL that handles the static files served from STATIC_ROOT.
 # Example: "http://media.lawrence.com/static/"
 #STATIC_URL = 'https://pydev.asnova.com/content/'
-STATIC_URL = 'C:\trunk\cabinet\content'
+# STATIC_URL = 'C:\trunk\cabinet\content'
+
+import os
+path_server = os.path.dirname(os.path.realpath(__file__))
+# path_root = path_server.split('/Server')[0]
+STATIC_URL = path_server + '/content/'
 
 # URL prefix for admin media -- CSS, JavaScript and images.
 # Make sure to use a trailing slash.
@@ -109,7 +122,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-ROOT_URLCONF = 'cabinet.urls'
+ROOT_URLCONF = 'urls'
 
 TEMPLATE_DIRS = (
     'templates',
@@ -119,7 +132,7 @@ TEMPLATE_DIRS = (
 )
 
 INSTALLED_APPS = (
-    'cabinet.cab_order',
+    'cab_order',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',

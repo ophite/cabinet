@@ -3,7 +3,9 @@ from datetime import datetime
 from django.forms.fields import *
 from django.forms import fields
 
-safeDict = lambda d: [d.update({k: str(v)}) for k, v in d.items() if v.__class__ == buffer] and d
+# safeDict = lambda d: dict([(k,str(v)) for k, v in d.items() if v.__class__ != unicode])
+safeDict = lambda d: dict([(k,str(v)) if v.__class__ != unicode else (k, v) for k, v in d.items()])
+# safeDict = lambda d: [d.update({k: str(v)}) for k, v in d.items() if v.__class__ == buffer] and d
 dateFormat = '%d.%m.%Y'
 IIF = lambda condition, res1, res2: res1 if condition else res2
 convert = lambda f: lambda x: IIF(x, f(x), None)

@@ -3,7 +3,7 @@ from django import forms
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 from django.forms.widgets import Widget, Textarea
-from django.utils.encoding import StrAndUnicode, force_unicode
+from django.utils.encoding import force_unicode#, StrAndUnicode
 from django.contrib.auth.models import User
 from django.core import validators
 from datetime import datetime
@@ -26,6 +26,7 @@ class Label(Widget):
         final_attrs = self.build_attrs(attrs, name=name)
         return mark_safe(u'<label%s>%s</label>' % (flatatt(final_attrs),
                 conditional_escape(force_unicode(value))))
+        
 #===================================================================================================
 class LoginForm(CodaForm):
     username = forms.CharField(max_length=150, label=u'Логин')
@@ -66,7 +67,8 @@ class SummaryOrderForm(CodaForm):
 class HeaderOrderListForm(CodaForm):
     BegDate = forms.DateField(label=u'Период с')
     EndDate = forms.DateField(label=u'Период по')
-    CustomerID = forms.IntegerField(label=u'Контрагент')
+    # CustomerID = forms.IntegerField(label=u'Контрагент')
+    CustomerID = forms.CharField(label=u'Контрагент')
     WithFinished = forms.BooleanField(label=u'Показывать завершенные')
 
 class HeaderOrderForm(CodaForm):

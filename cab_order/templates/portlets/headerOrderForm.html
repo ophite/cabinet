@@ -77,7 +77,7 @@ $(function() {
 	});
 
 	//-----------------------------------------------------------subject
-	var customer = $( "#id_CustomerID");
+	var customer = $("#id_CustomerID");
 	{% if not subject %}
 		customer.autocomplete({
 			minLength: 0,
@@ -91,7 +91,7 @@ $(function() {
 			        mtype: "GET",
 			        complete: function(jsondata, stat) {
 			            if (stat == "success"){
-							response( json_parse(jsondata.responseText));
+							response(json_parse(jsondata.responseText));
 						}
 					},
 			        error : function () {alert("subject filter ajax error");}
